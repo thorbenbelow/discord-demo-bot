@@ -1,0 +1,26 @@
+{
+  "name": "demo-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "tsc",
+    "client:dev": "node --experimental-specifier-resolution=node --loader ts-node/esm src/client.ts",
+    "client:start": "node --experimental-specifier-resolution=node dist/server.js"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "eslint-config-google": "^0.14.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.8.0",
+    "dotenv": "^16.0.3"
+  }
+}
