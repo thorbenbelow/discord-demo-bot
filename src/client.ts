@@ -14,6 +14,7 @@ class CommandClient extends Client {
 }
 
 const client = new CommandClient({intents: GatewayIntentBits.Guilds});
+
 client.registerCommand(ping);
 
 client.once(Events.ClientReady, (c) => {
@@ -34,7 +35,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   try {
-    await command.execute(interaction);
+    await command.execute(interaction, client);
   } catch (error) {
     console.error(error);
     if (interaction.replied || interaction.deferred) {
