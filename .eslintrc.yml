@@ -1,13 +1,13 @@
 parser: "@typescript-eslint/parser"
 plugins:
-    - "@typescript-eslint"
+  - "@typescript-eslint"
 extends:
-    - "eslint:recommended"
-    - "google"
-    - "plugin:@typescript-eslint/eslint-recommended"
-    - "plugin:@typescript-eslint/recommended"
+  - "eslint:recommended"
+  - "google"
+  - "plugin:@typescript-eslint/eslint-recommended"
+  - "plugin:@typescript-eslint/recommended"
 rules:
-    "@typescript-eslint/no-use-before-define": off
-    "max-len": ["error", {code: 100}]
-    require-jsdoc: off
-    new-cap: off
+  "@typescript-eslint/no-use-before-define": off
+  "max-len": [ "warn", { code: 120 } ]
+  require-jsdoc: off
+  new-cap: off

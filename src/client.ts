@@ -2,20 +2,26 @@ import {Client, Collection, Events, GatewayIntentBits} from 'discord.js';
 import * as dotenv from 'dotenv';
 import {Command} from './commands/command';
 import ping from './commands/ping';
+import votekick from './commands/votekick';
 
 dotenv.config();
 
 class CommandClient extends Client {
   public commands = new Collection<string, Command>();
 
-  registerCommand(command: Command) {
-    this.commands.set(command.command.name, command);
+  registerCommands(...commands: Command[]): void {
+    for (const command of commands) {
+      this.commands.set(command.command.name, command);
+    }
   }
 }
 
 const client = new CommandClient({intents: GatewayIntentBits.Guilds});
 
-client.registerCommand(ping);
+client.registerCommands(
+    ping,
+    votekick,
+);
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Ready! Logged in as user ${c.user.tag}`);
@@ -25,14 +31,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) {
     return;
   }
-
-  console.log(interaction);
   const command = (interaction.client as CommandClient).commands.get(interaction.commandName);
 
   if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
+    console.error(`NotFound  ${interaction.commandName}`);
     return;
   }
+
+  console.error(`Ok  ${interaction.commandName}`);
 
   try {
     await command.execute(interaction, client);

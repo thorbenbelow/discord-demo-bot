@@ -1,6 +1,7 @@
 import {REST, Routes} from 'discord.js';
 import ping from './commands/ping';
 import * as dotenv from 'dotenv';
+import votekick from './commands/votekick';
 
 dotenv.config();
 
@@ -8,6 +9,7 @@ const rest = new REST({version: '10'}).setToken(process.env.DISCORD_TOKEN);
 
 const commands = [
   ping,
+  votekick,
 ].map((c) => c.command.toJSON());
 
 try {
