@@ -1,11 +1,7 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  Client,
-  CommandInteraction,
-  SlashCommandBuilder,
-} from 'discord.js';
+import {ButtonStyle, Client, CommandInteraction, SlashCommandBuilder} from 'discord.js';
+
+const YES = '👍';
+const NO = '👎';
 
 const command = new SlashCommandBuilder()
     .setName('votekick')
@@ -26,61 +22,47 @@ async function execute(interaction: CommandInteraction, client: Client): Promise
   });
 
   if (!caller.voice.channelId) {
+    console.log('Caller not in a voice channel.');
     return;
   }
 
   if (caller.voice.channelId !== user.voice.channelId) {
+    console.log('Caller and user are in different voice channels');
     await caller.voice.disconnect('Bitte nicht abfucken');
     return;
   }
 
-  console.log({caller});
-
   const permissibleVotes = caller.voice.channel.members;
-  const votes = {yes: 0, no: 0};
-  const requiredVotes = permissibleVotes.size / 2;
+  const requiredVotes = Math.ceil(permissibleVotes.size / 2);
 
-  const voteActions = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId('votekick_yes').setLabel('Yes').setStyle(ButtonStyle.Success),
-      new ButtonBuilder().setCustomId('votekick_no').setLabel('No').setStyle(ButtonStyle.Danger),
-  );
-
-  const collector = interaction.channel.createMessageComponentCollector({
-    filter: (i) => i.customId === 'votekick_yes' || i.customId === 'votekick_no',
-    time: 10000,
+  const message = await interaction.reply({
+    content: `${caller.displayName} wants to kick ${user.displayName} (Required votes: ${requiredVotes}). You have 10 seconds to cast your vote.`,
+    fetchReply: true,
   });
+  await Promise.all([
+    message.react(YES),
+    message.react(NO),
+  ]);
 
-  collector.on('collect', async (vote) => {
-    if (vote.customId === 'votekick_yes') {
-      if (permissibleVotes.has(vote.user.id)) {
-        votes.yes += 1;
-      }
-      await vote.update({content: 'You voted Yes.', components: []});
-    } else {
-      if (permissibleVotes.has(vote.user.id)) {
-        votes.no += 1;
-      }
-      await vote.update({content: 'You voted No.', components: []});
-    }
-  });
+  const collector = message.createReactionCollector({time: 10000});
+  collector.on('end', async (collected) => {
+    const votes = {
+      yes: collected.find((r) => r.emoji.name === YES)?.users?.valueOf()?.size || 0,
+      no: collected.find((r) => r.emoji.name === NO)?.users?.valueOf()?.size || 0,
+    };
+    const result = votes.yes >= requiredVotes ?
+      {
+        user,
+        msg: `Vote succeded with ${votes.yes} to ${votes.no}. ${user.displayName} will be kicked :)`,
+      } :
 
-  let result;
-  collector.on('end', (collected) => {
-    if (votes.yes > requiredVotes) {
-      result = `Vote to kick ${user.displayName} succeeded.`;
-      user.voice.disconnect('Votekick');
-    } else {
-      result = `Vote to kick ${user.displayName} failed. ${caller.displayName} will be kicked instead.`;
-      caller.voice.disconnect('Votekick');
-    }
+      {
+        user: caller,
+        msg: `Vote failed with ${votes.yes} to ${votes.no}. ${caller.displayName} will be kicked instead :)`,
+      };
 
-    interaction.followUp({content: result || 'Oops. Something went wrong :('});
-  });
-
-  const response = await interaction.reply({
-    content: `${caller.displayName} wants to kick ${user.displayName}. You have 10 seconds to cast your vote.`,
-    // components: [voteActions],
-    ephemeral: true,
+    await result.user.voice.disconnect('votekick :)');
+    await interaction.followUp(result.msg);
   });
 }
 

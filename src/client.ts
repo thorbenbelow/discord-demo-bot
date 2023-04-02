@@ -16,7 +16,7 @@ class CommandClient extends Client {
   }
 }
 
-const client = new CommandClient({intents: GatewayIntentBits.Guilds});
+const client = new CommandClient({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions]});
 
 client.registerCommands(
     ping,
