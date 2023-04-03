@@ -1,4 +1,11 @@
-import {ButtonStyle, Client, CommandInteraction, SlashCommandBuilder} from 'discord.js';
+import {
+  ButtonStyle,
+  Client,
+  Collection,
+  CommandInteraction,
+  MessageReaction,
+  SlashCommandBuilder,
+} from 'discord.js';
 
 const YES = '👍';
 const NO = '👎';
@@ -16,6 +23,7 @@ async function execute(interaction: CommandInteraction, client: Client): Promise
   const guild = await client.guilds.fetch(interaction.guildId);
 
   const caller = await guild.members.fetch({user: interaction.user.id, force: true});
+  console.log(caller.voice);
   const user = await guild.members.fetch({
     user: interaction.options.getUser('user').id,
     force: true,
@@ -45,11 +53,20 @@ async function execute(interaction: CommandInteraction, client: Client): Promise
   ]);
 
   const collector = message.createReactionCollector({time: 10000});
+  const filterReactions = (reactions: Collection<string, MessageReaction>, emoji: string) => {
+    return reactions
+        .find((r) => r.emoji.name === emoji)
+        ?.users
+        .valueOf()
+        .filter((user) => user.id !== client.user.id)
+        .size || 0;
+  };
   collector.on('end', async (collected) => {
     const votes = {
-      yes: collected.find((r) => r.emoji.name === YES)?.users?.valueOf()?.size || 0,
-      no: collected.find((r) => r.emoji.name === NO)?.users?.valueOf()?.size || 0,
+      yes: filterReactions(collected, YES),
+      no: filterReactions(collected, NO),
     };
+
     const result = votes.yes >= requiredVotes ?
       {
         user,
